@@ -12,7 +12,7 @@ initial_state = {
     "recommended_action": None
 }
 
-print("� INITIATING APEX ROUTE PROTOCOL 📍\n")
+print(" INITIATING APEX ROUTE PROTOCOL 📍\n")
 
 # Run the LangGraph application
 final_state = apex_app.invoke(initial_state)

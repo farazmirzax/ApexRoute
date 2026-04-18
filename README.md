@@ -1,4 +1,4 @@
-# � APEX ROUTE - Autonomous Logistics AI
+# 📍APEX ROUTE - Autonomous Logistics AI
 
 **Autonomous Logistics AI // Team Requiem**
 

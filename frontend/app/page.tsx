@@ -46,7 +46,7 @@ export default function CommandCenter() {
 
         {/* Header */}
         <h1 className="text-3xl font-bold text-white mb-2 tracking-widest">
-          � APEX ROUTE <span className="text-emerald-500">COMMAND CENTER</span>
+          📍 APEX ROUTE <span className="text-emerald-500">COMMAND CENTER</span>
         </h1>
         <p className="text-slate-500 mb-8 border-b border-slate-800 pb-4">
           Autonomous Logistics AI // Team Requiem
