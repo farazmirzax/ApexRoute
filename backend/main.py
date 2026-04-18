@@ -24,7 +24,7 @@ class ShipmentRequest(BaseModel):
 
 @app.post("/api/analyze_route")
 async def analyze_route(request: ShipmentRequest):
-    print(f"\n💀 Incoming Request for Shipment: {request.shipment_id}")
+    print(f"\n� Incoming Request for Shipment: {request.shipment_id}")
     
     initial_state = {
         "shipment_id": request.shipment_id,
