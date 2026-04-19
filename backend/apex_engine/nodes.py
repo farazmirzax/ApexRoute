@@ -65,11 +65,24 @@ def risk_oracle_node(state: SupplyChainState):
     return {"risk_level": risk_level}
 
 
-# --- AGENT 3: The Dispatcher ---
+# --- AGENT 3: The Route Planner (ALWAYS runs) ---
+def route_planner_node(state: SupplyChainState):
+    print("📍 [Route Planner Node] Calculating GPS coordinates for map visualization...")
+    
+    # ALWAYS calculate the route, regardless of risk level
+    action, coords = get_optimized_route(state["current_location"], state["destination"])
+    
+    return {
+        "recommended_action": action,
+        "route_coordinates": coords
+    }
+
+
+# --- AGENT 4: The Dispatcher (ONLY runs on high risk) ---
 def dispatcher_node(state: SupplyChainState):
     print("⚡ [Dispatcher Node] Critical risk detected. Calculating evasive maneuvers...")
     
-    # Catch both the text action and the GPS coords
+    # On high risk, recalculate with updated messaging
     action, coords = get_optimized_route(state["current_location"], state["destination"])
     
     # Update the LangGraph state
