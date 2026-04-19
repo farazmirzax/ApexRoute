@@ -6,18 +6,19 @@ import dynamic from "next/dynamic";
 // Dynamically import the map to prevent Next.js SSR crashes
 const TacticalMap = dynamic(() => import("./components/Map"), {
   ssr: false,
-  loading: () => <div className="w-full h-[400px] bg-slate-900 border border-slate-800 rounded-lg flex items-center justify-center text-slate-500 animate-pulse">BOOTING SATELLITE UPLINK...</div>
+  loading: () => <div className="w-full h-[420px] bg-slate-900 border border-slate-800 rounded-lg flex items-center justify-center text-slate-500 animate-pulse">BOOTING SATELLITE UPLINK...</div>
 });
 
 export default function CommandCenter() {
   // State to hold our form inputs
-  const [shipmentId, setShipmentId] = useState("REQ-774-ALPHA");
-  const [currentLocation, setCurrentLocation] = useState("Lucknow");
-  const [destination, setDestination] = useState("Gaza");
+  const [shipmentId, setShipmentId] = useState("REQ-001");
+  const [currentLocation, setCurrentLocation] = useState("");
+  const [destination, setDestination] = useState("");
 
   // State to hold the API response and loading status
   const [result, setResult] = useState<any>(null);
   const [loading, setLoading] = useState(false);
+  const isRerouted = !!result?.recommended_action && (result?.risk_level ?? 0) >= 0.7;
 
   // The function that talks to FastAPI
   const analyzeRoute = async () => {
@@ -59,9 +60,9 @@ export default function CommandCenter() {
           Autonomous Logistics AI // Team Requiem
         </p>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)] gap-8">
 
-          {/* Left Side: Inputs + Map */}
+          {/* Left Side: Inputs */}
           <div className="space-y-8">
             
             {/* The Input Form */}
@@ -75,6 +76,7 @@ export default function CommandCenter() {
                     type="text"
                     value={shipmentId}
                     onChange={(e) => setShipmentId(e.target.value)}
+                    placeholder="REQ-001"
                     className="w-full bg-slate-950 border border-slate-700 p-2 text-emerald-400 focus:outline-none focus:border-emerald-500 rounded cursor-text"
                   />
                 </div>
@@ -84,6 +86,7 @@ export default function CommandCenter() {
                     type="text"
                     value={currentLocation}
                     onChange={(e) => setCurrentLocation(e.target.value)}
+                    placeholder="e.g. Lucknow, India"
                     className="w-full bg-slate-950 border border-slate-700 p-2 text-white focus:outline-none focus:border-emerald-500 rounded cursor-text"
                   />
                 </div>
@@ -93,6 +96,7 @@ export default function CommandCenter() {
                     type="text"
                     value={destination}
                     onChange={(e) => setDestination(e.target.value)}
+                    placeholder="e.g. Phuket, Thailand"
                     className="w-full bg-slate-950 border border-slate-700 p-2 text-white focus:outline-none focus:border-emerald-500 rounded cursor-text"
                   />
                 </div>
@@ -105,14 +109,6 @@ export default function CommandCenter() {
                   {loading ? "EXECUTING AI PROTOCOL..." : "ANALYZE ROUTE"}
                 </button>
               </div>
-            </div>
-
-            {/* THE NEW TACTICAL MAP */}
-            <div className="bg-slate-900 border border-slate-800 p-2 rounded-lg shadow-2xl">
-               <TacticalMap 
-                  isRerouted={result?.risk_level >= 0.7} 
-                  coordinates={result?.route_coordinates} 
-               />
             </div>
 
           </div>
@@ -162,7 +158,7 @@ export default function CommandCenter() {
                 </div>
 
                 {/* 3. UPGRADED AGENTIC ACTION (THE TACTICAL GRID) */}
-                {result.recommended_action ? (
+                {isRerouted ? (
                   <div className="p-5 bg-rose-950/20 border border-rose-900/50 rounded-lg backdrop-blur-sm">
                     <span className="text-rose-500 text-xs block mb-3 font-semibold tracking-wider flex items-center">
                       <span className="w-2 h-2 bg-rose-500 animate-pulse rounded-full mr-2"></span>
@@ -212,6 +208,30 @@ export default function CommandCenter() {
                 FATAL ERROR: {result.error}
               </div>
             )}
+          </div>
+
+          {/* Full-width Tactical Map */}
+          <div className="xl:col-span-2 bg-slate-900 border border-slate-800 p-2 rounded-lg shadow-2xl">
+            <div className="flex items-center justify-between px-4 pt-3 pb-2">
+              <div>
+                <h2 className="text-xl text-white">Tactical Route Map</h2>
+                <p className="text-xs text-slate-500 tracking-wider mt-1">
+                  {isRerouted ? "LIVE EVASIVE GEOMETRY" : "LOW-RISK PREVIEW PATH"}
+                </p>
+              </div>
+              <div className={`hidden sm:flex items-center gap-2 rounded-full border px-3 py-1 text-[11px] font-semibold tracking-[0.2em] ${
+                isRerouted
+                  ? "border-rose-900/60 bg-rose-950/30 text-rose-300"
+                  : "border-emerald-900/60 bg-emerald-950/30 text-emerald-300"
+              }`}>
+                <span className={`h-2 w-2 rounded-full ${isRerouted ? "bg-rose-500" : "bg-emerald-500"}`}></span>
+                {isRerouted ? "REROUTED" : "SECURE"}
+              </div>
+            </div>
+            <TacticalMap
+              isRerouted={isRerouted}
+              coordinates={result?.route_coordinates}
+            />
           </div>
 
         </div>
