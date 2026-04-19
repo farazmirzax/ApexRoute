@@ -45,7 +45,7 @@ def get_news(destination: str) -> str:
     except Exception as e:
         return f"News API Error: {str(e)}"
 
-def get_optimized_route(origin: str, destination: str) -> str:
+def get_optimized_route(origin: str, destination: str):
     """Calculates an alternative physical route using Open-Source APIs (100% Free)."""
     
     # Identify our app to the free servers so they don't block us
@@ -68,23 +68,33 @@ def get_optimized_route(origin: str, destination: str) -> str:
     lon2, lat2 = get_coords(destination)
 
     if not (lon1 and lat1 and lon2 and lat2):
-        return "Routing AI Error: Could not lock GPS coordinates for those locations."
+        return "Routing AI Error: Could not lock GPS coordinates.", []
 
     # STEP 2: Calculate the actual driving route (using OSRM)
     print("🛣️ [Routing Tool] Calculating evasive route via OSRM...")
-    osrm_url = f"http://router.project-osrm.org/route/v1/driving/{lon1},{lat1};{lon2},{lat2}?overview=false"
+    # Added &geometries=geojson to pull the literal road curves
+    osrm_url = f"http://router.project-osrm.org/route/v1/driving/{lon1},{lat1};{lon2},{lat2}?overview=simplified&geometries=geojson"
     
     try:
         response = requests.get(osrm_url).json()
         if response.get("code") != "Ok":
-            return "Alternative Route generation failed. Awaiting human override."
+            return "Alternative Route generation failed. Awaiting human override.", []
 
         # Extract distance and time from the open-source router
         route = response['routes'][0]
-        distance_km = round(route['distance'] / 1000, 1) # Convert meters to km
-        duration_hrs = round(route['duration'] / 3600, 1) # Convert seconds to hours
+        distance_km = round(route['distance'] / 1000, 1)  # Convert meters to km
+        duration_hrs = round(route['duration'] / 3600, 1)  # Convert seconds to hours
         
-        return f"ALTERNATIVE ROUTE LOCKED: Rerouting via secondary continental highways. Distance: {distance_km} km. ETA: {duration_hrs} hours."
+        # Grab the literal road GPS points!
+        coords = route['geometry']['coordinates']
+        
+        # OSRM outputs [Longitude, Latitude], but Leaflet maps need [Latitude, Longitude]
+        leaflet_coords = [[c[1], c[0]] for c in coords]
+        
+        action_string = f"ALTERNATIVE ROUTE LOCKED: Rerouting via secondary continental highways. Distance: {distance_km} km. ETA: {duration_hrs} hours."
+        
+        # Return BOTH the text and the massive array of road coordinates
+        return action_string, leaflet_coords
     
     except Exception as e:
-        return f"Routing API Error: {str(e)}"
+        return f"Routing API Error: {str(e)}", []

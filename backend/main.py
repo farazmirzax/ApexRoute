@@ -33,7 +33,8 @@ async def analyze_route(request: ShipmentRequest):
         "weather_data": None,
         "news_data": None,
         "risk_level": None,
-        "recommended_action": None
+        "recommended_action": None,
+        "route_coordinates": None
     }
     
     final_state = apex_app.invoke(initial_state)

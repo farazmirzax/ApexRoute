@@ -69,8 +69,11 @@ def risk_oracle_node(state: SupplyChainState):
 def dispatcher_node(state: SupplyChainState):
     print("⚡ [Dispatcher Node] Critical risk detected. Calculating evasive maneuvers...")
     
-    # Call the routing tool
-    new_route = get_optimized_route(state["current_location"], state["destination"])
-    action = f"REROUTE INITIATED: {new_route}"
+    # Catch both the text action and the GPS coords
+    action, coords = get_optimized_route(state["current_location"], state["destination"])
     
-    return {"recommended_action": action}
+    # Update the LangGraph state
+    return {
+        "recommended_action": action,
+        "route_coordinates": coords
+    }
