@@ -4,7 +4,6 @@ from langgraph.graph import END, StateGraph
 from .nodes import dispatcher_node, intel_gatherer_node, risk_oracle_node, route_planner_node
 from .state import SupplyChainState
 
-
 workflow = StateGraph(SupplyChainState)
 
 workflow.add_node("intel", intel_gatherer_node)
@@ -14,15 +13,17 @@ workflow.add_node("dispatcher", dispatcher_node)
 
 
 def check_risk_level(state: SupplyChainState):
-    """Route only high-risk shipments through the dispatcher."""
-    risk = state.get("risk_level", 0.0) or 0.0
-    print(f"[Router] Oracle reported risk level: {risk}")
-
-    if risk >= 0.7:
-        print("[Router] Critical risk detected. Routing to dispatcher for alternatives.")
+    """Route to dispatcher if ANY shipment in the fleet is at risk."""
+    fleet = state.get("fleet", [])
+    
+    # Check if any single ship triggered the >= 0.7 threshold
+    is_network_at_risk = any(s.get("risk_score", 0.0) >= 0.7 for s in fleet)
+    
+    if is_network_at_risk:
+        print("[Router] Network threat detected. Waking up Dispatcher.")
         return "dispatcher"
 
-    print("[Router] Route is safe. Proceeding with standard logistics.")
+    print("[Router] Network is secure. Proceeding with standard logistics.")
     return END
 
 
