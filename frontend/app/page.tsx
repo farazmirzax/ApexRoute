@@ -149,12 +149,21 @@ export default function CommandCenter() {
                 
                 {/* 2. THE RISK GAUGE */}
                 <div className="p-4 bg-slate-950 border-l-2 border-slate-700 rounded-r-md">
-                  <span className="text-slate-500 text-xs block mb-1 font-semibold tracking-wider">
+                  <span className="text-slate-500 text-xs block mb-2 font-semibold tracking-wider">
                     CALCULATED RISK LEVEL:
                   </span>
-                  <span className={`text-4xl font-black tracking-tighter ${result.risk_level >= 0.7 ? 'text-rose-500 drop-shadow-[0_0_10px_rgba(244,63,94,0.4)]' : 'text-emerald-500 drop-shadow-[0_0_10px_rgba(16,185,129,0.4)]'}`}>
-                    {(result.risk_level * 100).toFixed(1)}%
-                  </span>
+                  <div className="flex flex-col gap-2">
+                    <span className={`text-4xl font-black tracking-tighter ${result.risk_level >= 0.7 ? 'text-rose-500 drop-shadow-[0_0_10px_rgba(244,63,94,0.4)]' : 'text-emerald-500 drop-shadow-[0_0_10px_rgba(16,185,129,0.4)]'}`}>
+                      {(result.risk_level * 100).toFixed(1)}%
+                    </span>
+                    {result.risk_reason && (
+                      <div className="mt-2 pt-2 border-t border-slate-800">
+                        <span className="text-[11px] text-slate-400 leading-relaxed italic block">
+                          {result.risk_reason}
+                        </span>
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 {/* 3. UPGRADED AGENTIC ACTION (THE TACTICAL GRID) */}

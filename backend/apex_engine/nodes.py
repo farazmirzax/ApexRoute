@@ -9,17 +9,6 @@ from .state import SupplyChainState
 from .tools import get_news, get_optimized_route, get_route_preview, get_weather
 
 
-class MockLLM:
-    """Mock LLM for testing without API quota limits."""
-
-    def invoke(self, prompt):
-        class Response:
-            content = "RISK_LEVEL: 0.85\nREASON: High risk due to hurricane and port strike."
-
-        return Response()
-
-
-# llm = MockLLM()
 llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash", temperature=0.1)
 
 
@@ -37,29 +26,34 @@ def risk_oracle_node(state: SupplyChainState):
 
     prompt = f"""
     You are Project Sentinel, an elite supply chain AI.
-    Analyze the following shipment data:
+    Analyze ONLY the following provided intelligence:
     - Shipment ID: {state['shipment_id']}
     - Weather: {state['weather_data']}
-    - News: {state['news_data']}
+    - News Intel: {state['news_data']}
 
-    Task: Calculate the risk of delay.
+    Task: Calculate the risk of delay based ONLY on this provided data.
+    If the news says "No recent news" or "No threats", treat it as low risk unless weather is critical.
     Output EXACTLY two lines in this format:
-    RISK_LEVEL: [a float between 0.0 and 1.0]
-    REASON: [one sentence explanation]
+    RISK_LEVEL: [a float between 0.0 and 1.0, must align with the provided intel]
+    REASON: [one sentence explanation based on the intel above]
     """
 
     response = llm.invoke(prompt)
     output_text = response.content
 
     risk_level = 0.0
+    risk_reason = "No risk assessment available."
+    
     for line in output_text.split("\n"):
         if "RISK_LEVEL:" in line:
             try:
                 risk_level = float(line.split(":")[1].strip())
             except ValueError:
                 risk_level = 0.0
+        elif "REASON:" in line:
+            risk_reason = line.split("REASON:")[1].strip()
 
-    return {"risk_level": risk_level}
+    return {"risk_level": risk_level, "risk_reason": risk_reason}
 
 
 def route_planner_node(state: SupplyChainState):

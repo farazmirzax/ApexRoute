@@ -222,31 +222,44 @@ def get_weather(destination: str) -> str:
 
 
 def get_news(destination: str) -> str:
-    """Scrapes global news for logistics threats."""
+    """Scrapes global news for logistics and conflict threats."""
     api_key = os.getenv("NEWS_API_KEY")
     if not api_key or api_key == "your_newsapi_key":
         return "News API Key missing."
 
     normalized_destination = _normalize_location(destination)
-    raw_query = (
-        f'"{normalized_destination}" AND '
-        "(logistics OR shipping OR cargo OR freight OR port OR strike OR blockade OR delay OR closure OR supply chain)"
-    )
+    
+    # BROADER query: include both logistics AND conflict/war keywords
+    all_impact_terms = list(LOGISTICS_KEYWORDS) + list(THREAT_KEYWORDS) + list(ROUTE_IMPACT_TERMS)
+    query_terms = " OR ".join(f'"{kw}"' for kw in all_impact_terms[:10])  # Use top 10 to avoid query length limits
+    
+    raw_query = f'"{normalized_destination}" ({query_terms})'
     safe_query = urllib.parse.quote(raw_query)
     url = (
         "https://newsapi.org/v2/everything"
-        f"?q={safe_query}&searchIn=title,description&sortBy=relevancy&language=en&pageSize=10&apiKey={api_key}"
+        f"?q={safe_query}&searchIn=title,description&sortBy=publishedAt&language=en&pageSize=15&apiKey={api_key}"
     )
 
     try:
         response = requests.get(url, timeout=10).json()
         articles = response.get("articles", [])
 
-        filtered_articles = [article for article in articles if _is_relevant_article(article, normalized_destination)]
+        # Lenient filtering: destination mention + any impact keyword
+        filtered_articles = []
+        destination_terms = _location_terms(destination)
+        
+        for article in articles:
+            content = f"{article.get('title', '')} {article.get('description', '')}".lower()
+            mentions_destination = any(term in content for term in destination_terms)
+            is_off_topic = any(kw in content for kw in OFF_TOPIC_KEYWORDS)
+            
+            if mentions_destination and not is_off_topic:
+                filtered_articles.append(article)
+        
         top_articles = filtered_articles[:3]
 
         if not top_articles:
-            return "No immediate logistics threats detected in recent destination-specific news."
+            return "No recent news articles found for this destination."
 
         news_summary = " | ".join([f"HEADLINE: {article['title']}" for article in top_articles if article.get("title")])
         return f"Recent Intel: {news_summary}"

@@ -10,5 +10,6 @@ class SupplyChainState(TypedDict):
     weather_data: Optional[str]
     news_data: Optional[str]
     risk_level: Optional[float]
+    risk_reason: Optional[str]
     recommended_action: Optional[str]
     route_coordinates: Optional[List[Any]]
